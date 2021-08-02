@@ -2,10 +2,10 @@
 //ASM EXEC ASMGCLG,REGION=1024K
 //SYSPRINT DD SYSOUT=*
 //SYSIN DD *
-HELLO  CSECT
-       USING HELLO,15
-	   SAVE (14,12)
-	   WTO 'HELLO WORLD!'
-	   RETURN (14,12),RC=0
-	   END
+HELLO    CSECT
+         USING HELLO,15
+         SAVE (14,12)
+         WTO 'HELLO WORLD!'
+         RETURN (14,12),RC=0
+         END
 /* 
