@@ -1,0 +1,267 @@
+//MVS0370  JOB (SETUP),
+//             'Setup PASSWORD  ',
+//             CLASS=A,
+//             MSGCLASS=X,
+//             MSGLEVEL=(1,1)
+//********************************************************************
+//*
+//* Name: SYS1.SETUP.CNTL(MVS0370)
+//*
+//* Desc: Setup the PASSWORD datasets and sample jobs
+//*
+//********************************************************************
+//CLEANUP EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+ DELETE PASSWORD NONVSAM PURGE
+/*
+//ALLOC   EXEC PGM=IEFBR14
+//PASSWORD DD  DSN=PASSWORD,
+//             DISP=(,CATLG),
+//             UNIT=3350,VOL=SER=MVSRES,
+//             SPACE=(CYL,5),
+//             DCB=(DSORG=PS,RECFM=F,LRECL=80,BLKSIZE=80,KEYLEN=52)
+//UPDATE  EXEC PGM=IEBUPDTE,PARM=NEW
+//SYSPRINT DD  SYSOUT=*
+//SYSUT2   DD  DISP=SHR,DSN=SYS2.JCLLIB
+//SYSIN    DD  DATA,DLM=XX
+./ ADD NAME=PROGADD
+//PROGADD JOB  (TSO),
+//             'Add a password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROGADD)
+//*
+//* Desc: Add a password to a dataset using IEHPROGM
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IEHPROGM
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+       DELETEP DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=CONTROLL               Password to be deleted
+           ADD DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD2=CONTROLL,              Control Password        C
+               TYPE=3,                         Read without password   C
+               DATA='Control Password'         write requires password
+           ADD DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD2=DOWRITE,               Add this password       C
+               CPASWORD=CONTROLL,              Control Password        C
+               TYPE=3,                         Allows READ/WRITE       C
+               DATA='READ/WRITE password'
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=CONTROLL               Control Password
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=DOWRITE                Control Password
+       DELETEP DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=CONTROLL               Password to be deleted
+           ADD DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD2=CONTROLL,              Control Password        C
+               TYPE=1,                         Read without password   C
+               DATA='Control Password'         write requires password
+           ADD DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD2=DOWRITE,               Add this password       C
+               CPASWORD=CONTROLL,              Control Password        C
+               TYPE=1,                         Allows READ and WRITE   C
+               DATA='READ/WRITE password'
+           ADD DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD2=DOREAD,                Add this password       C
+               CPASWORD=CONTROLL,              Control Password        C
+               TYPE=2,                         Allows READ             C
+               DATA='READ only password'
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=CONTROLL               Control Password
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=DOWRITE                READ/WRITE password
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=DOREAD                 READ password
+       DELETEP DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=CONTROLL               Password to be deleted
+./ ADD NAME=PROGCHG
+//PROGCHG JOB  (TSO),
+//             'Change password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROGCHG)
+//*
+//* Desc: Change a password to a dataset using IEHPROGM
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IEHPROGM
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+       REPLACE DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               CPASWORD=CCCCCCCC,              current control passwordC
+               PASWORD1=FFFFFFFF,              change from             C
+               PASWORD2=TTTTTTTT,              change to               C
+               TYPE=3,                         Protection type         C
+               DATA='Control, Read/write'
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=TTTTTTTT               List password entry
+./ ADD NAME=PROGDEL
+//PROGELT JOB  (TSO),
+//             'Delete password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROGDEL)
+//*
+//* Desc: List a password entry using IEHPROGM
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IEHPROGM
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=YYYYYYYY               current password
+./ ADD NAME=PROGLST
+//PROGLST JOB  (TSO),
+//             'List password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROGLST)
+//*
+//* Desc: List a password entry using IEHPROGM
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IEHPROGM
+//SYSPRINT DD  SYSOUT=*
+//SYSIN    DD  *
+          LIST DSNAME=HERC01.TEST.CNTL,        Name of data set        C
+               PASWORD1=YYYYYYYY               current password
+./ ADD NAME=PROTADD
+//PROTADD JOB  (TSO),
+//             'Add a password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROTADD)
+//*
+//* Desc: Add a password to a dataset using TSO PROTECT
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IKJEFT01
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ PROFILE NOPREFIX
+ PROTECT HERC01.TEST.CNTL        /* Name of file to protect   */     +
+         ADD(YYYYYYYY)           /* Add this password         */     +
+         NOPWREAD                /* No password for read      */     +
+         PWWRITE                 /* Password needed for write */     +
+         DATA('some text up to 77 bytes long')
+./ ADD NAME=PROTCHG
+//PROTCHG  JOB (TSO),
+//             'Change password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROTCHG)
+//*
+//* Desc: Change a dataset password via TSO PROTECT
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IKJEFT01
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ PROFILE NOPREFIX
+ PROTECT HERC01.TEST.CNTL        /* Name of file to protect   */     +
+         REPLACE(XXXXXXXX,       /* change from XXXXXXXX      */     +
+                 YYYYYYYY)       /* change to   YYYYYYYY      */     +
+         NOPWREAD                /* No password for read      */     +
+         PWWRITE                 /* Password needed for write */     +
+         DATA('some text up to 77 bytes long')
+./ ADD NAME=PROTDEL
+//PROTDEL  JOB (TSO),
+//             'Delete Password',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROTDEL)
+//*
+//* Desc: Delete a dataset password via PROTECT
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IKJEFT01
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ PROFILE NOPREFIX
+ PROTECT HERC01.TEST.CNTL        /* Name of file to protect   */     +
+         DELETE(YYYYYYYY)        /* Delete this password      */
+./ ADD NAME=PROTLST
+//PROTLST JOB  (TSO),
+//             'List PWD info',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PROTLST)
+//*
+//* Desc: List PASSWORD info for a datasets via TSO PROTECT
+//*
+//*********************************************************************
+//*
+//PROTECT EXEC PGM=IKJEFT01
+//SYSTSPRT DD  SYSOUT=*
+//SYSTSIN  DD  *
+ PROFILE NOPREFIX
+ PROTECT HERC01.TEST.CNTL        /* Name of file to protect   */     +
+         LIST(YYYYYYYY)          /* Show info for PWD         */
+./ ADD NAME=PWDPRINT
+//PWDPRINT JOB (TSO),
+//             'Print PASSWORD',
+//             CLASS=A,
+//             MSGCLASS=A,
+//             COND=(0,NE),
+//             MSGLEVEL=(1,1)
+//*********************************************************************
+//*
+//* Name: SYS2.JCLLIB(PWDPRINT)
+//*
+//* Desc: List PASSWORD dataset
+//*
+//*********************************************************************
+//*
+//PRINTIT EXEC PGM=IDCAMS
+//SYSPRINT DD  SYSOUT=*
+//SYSUT1   DD  DISP=SHR,
+//             UNIT=3350,
+//             VOL=SER=MVSRES,
+//             DSNAME=PASSWORD,
+//             DCB=(LRECL=80,RECFM=F,BLKSIZE=80,KEYLEN=52,BUFL=132)
+//SYSIN    DD  *
+ PARM GRAPHICS(CHAIN(SN))
+ PRINT INFILE(SYSUT1)
+XX
